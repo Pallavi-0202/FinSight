@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/dashboardFragment">
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.example.finsight.ui.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard" />
+
+    <fragment
+        android:id="@+id/transactionsFragment"
+        android:name="com.example.finsight.ui.TransactionsFragment"
+        android:label="Transactions"
+        tools:layout="@layout/fragment_transactions" />
+
+    <fragment
+        android:id="@+id/budgetsFragment"
+        android:name="com.example.finsight.ui.BudgetsFragment"
+        android:label="Budgets"
+        tools:layout="@layout/fragment_budgets" />
+
+    <fragment
+        android:id="@+id/assistantFragment"
+        android:name="com.example.finsight.ui.AssistantFragment"
+        android:label="Assistant"
+        tools:layout="@layout/fragment_assistant" />
+</navigation>
