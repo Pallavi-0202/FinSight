@@ -28,4 +28,10 @@
         android:name="com.example.finsight.ui.AssistantFragment"
         android:label="Assistant"
         tools:layout="@layout/fragment_assistant" />
+
+    <fragment
+        android:id="@+id/addTransactionFragment"
+        android:name="com.example.finsight.ui.AddTransactionFragment"
+        android:label="Add Transaction"
+        tools:layout="@layout/fragment_add_transaction" />
 </navigation>
