@@ -2,12 +2,15 @@ package com.example.finsight.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import androidx.lifecycle.MediatorLiveData
 import com.example.finsight.data.AppDatabase
+import com.example.finsight.data.Budget
+import com.example.finsight.data.BudgetRepository
 import com.example.finsight.data.Transaction
 import com.example.finsight.data.TransactionRepository
+import com.example.finsight.insights.InsightsEngine
 import java.util.Calendar
+import java.util.Date
 
 /**
  * Data class holding calculated dashboard statistics for summary cards and chart.
@@ -21,20 +24,36 @@ data class DashboardSummary(
 )
 
 /**
- * ViewModel responsible for transforming transaction data into financial overview summary metrics.
+ * ViewModel responsible for transforming transaction data into financial overview summary metrics
+ * and spending insights.
  */
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: TransactionRepository
-    val dashboardSummary: LiveData<DashboardSummary>
+    private val transactionRepository: TransactionRepository
+    private val budgetRepository: BudgetRepository
+    private val insightsEngine = InsightsEngine()
+
+    val dashboardSummary = MediatorLiveData<DashboardSummary>()
+    val insightTexts = MediatorLiveData<List<String>>()
 
     init {
-        val transactionDao = AppDatabase.getDatabase(application).transactionDao()
-        repository = TransactionRepository(transactionDao)
+        val db = AppDatabase.getDatabase(application)
+        transactionRepository = TransactionRepository(db.transactionDao())
+        budgetRepository = BudgetRepository(db.budgetDao())
 
-        dashboardSummary = repository.allTransactions.map { transactions ->
-            calculateSummary(transactions)
+        dashboardSummary.addSource(transactionRepository.allTransactions) { transactions ->
+            dashboardSummary.value = calculateSummary(transactions)
+            updateInsights(transactions, budgetRepository.allBudgets.value.orEmpty())
         }
+
+        insightTexts.addSource(budgetRepository.allBudgets) { budgets ->
+            updateInsights(transactionRepository.allTransactions.value.orEmpty(), budgets)
+        }
+    }
+
+    private fun updateInsights(transactions: List<Transaction>, budgets: List<Budget>) {
+        val currentDate = Date()
+        insightTexts.value = insightsEngine.generateInsightTexts(transactions, budgets, currentDate)
     }
 
     private fun calculateSummary(transactions: List<Transaction>): DashboardSummary {

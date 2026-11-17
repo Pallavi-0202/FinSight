@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -22,7 +23,8 @@ import java.util.Locale
 import kotlin.math.abs
 
 /**
- * Fragment responsible for displaying summary metrics cards and category spending pie chart.
+ * Fragment responsible for displaying summary metrics cards, category spending pie chart,
+ * and spending insights.
  */
 class DashboardFragment : Fragment() {
 
@@ -56,6 +58,29 @@ class DashboardFragment : Fragment() {
             binding.tvMonthSavings.text = formatCurrency(summary.monthSavings)
 
             setupPieChart(summary.monthCategoryExpenses)
+        }
+
+        viewModel.insightTexts.observe(viewLifecycleOwner) { sentences ->
+            val container = binding.llInsightsContainer
+            container.removeAllViews()
+
+            if (sentences.isEmpty()) {
+                val emptyTv = TextView(requireContext()).apply {
+                    text = "Add some transactions to see insights"
+                    textSize = 14f
+                    setTextColor(Color.GRAY)
+                }
+                container.addView(emptyTv)
+            } else {
+                for (sentence in sentences) {
+                    val tv = TextView(requireContext()).apply {
+                        text = "• $sentence"
+                        textSize = 14f
+                        setPadding(0, 4, 0, 8)
+                    }
+                    container.addView(tv)
+                }
+            }
         }
     }
 
