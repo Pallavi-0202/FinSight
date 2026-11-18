@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -14,6 +15,7 @@ import com.example.finsight.LoginActivity
 import com.example.finsight.auth.SessionManager
 import com.example.finsight.databinding.FragmentDashboardBinding
 import com.example.finsight.databinding.ItemTopBudgetBinding
+import com.google.android.material.snackbar.Snackbar
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
@@ -61,6 +63,7 @@ class DashboardFragment : Fragment() {
 
         sessionManager = SessionManager(requireContext())
         setupHeader()
+        setupOverflowMenu()
         setupExplainButton()
         observeViewModel()
     }
@@ -73,6 +76,59 @@ class DashboardFragment : Fragment() {
         binding.btnLogout.setOnClickListener {
             showLogoutConfirmationDialog()
         }
+    }
+
+    /**
+     * Sets up the overflow menu button (three-dot menu) for demo data loading and clearing data.
+     */
+    private fun setupOverflowMenu() {
+        binding.btnOverflow.setOnClickListener { view ->
+            val popup = PopupMenu(requireContext(), view)
+            popup.menu.add(0, 1, 0, "Load demo data")
+            popup.menu.add(0, 2, 1, "Clear my data")
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> {
+                        showLoadDemoDataConfirmationDialog()
+                        true
+                    }
+                    2 -> {
+                        showClearDataConfirmationDialog()
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
+    }
+
+    /**
+     * Shows confirmation dialog for loading demo data.
+     */
+    private fun showLoadDemoDataConfirmationDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Load demo data")
+            .setMessage("This replaces your current transactions and budgets with sample data.")
+            .setPositiveButton("Load") { _, _ ->
+                viewModel.loadDemoData()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    /**
+     * Shows confirmation dialog for clearing user data.
+     */
+    private fun showClearDataConfirmationDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Clear my data")
+            .setMessage("This deletes all your transactions and budgets.")
+            .setPositiveButton("Delete") { _, _ ->
+                viewModel.clearMyData()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun showLogoutConfirmationDialog() {
@@ -150,6 +206,13 @@ class DashboardFragment : Fragment() {
         viewModel.aiExplanation.observe(viewLifecycleOwner) { explanation ->
             binding.cardAiExplanation.isVisible = true
             binding.tvAiExplanation.text = explanation
+        }
+
+        viewModel.actionFinishedEvent.observe(viewLifecycleOwner) { message ->
+            if (!message.isNullOrEmpty()) {
+                Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+                viewModel.onActionFinishedHandled()
+            }
         }
     }
 

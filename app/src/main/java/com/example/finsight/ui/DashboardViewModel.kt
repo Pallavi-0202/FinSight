@@ -12,10 +12,13 @@ import com.example.finsight.auth.SessionManager
 import com.example.finsight.data.AppDatabase
 import com.example.finsight.data.Budget
 import com.example.finsight.data.BudgetRepository
+import com.example.finsight.data.DemoDataSeeder
 import com.example.finsight.data.Transaction
 import com.example.finsight.data.TransactionRepository
 import com.example.finsight.insights.InsightsEngine
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -77,6 +80,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     private val _isExplainLoading = MutableLiveData<Boolean>(false)
     val isExplainLoading: LiveData<Boolean> get() = _isExplainLoading
 
+    private val _actionFinishedEvent = MutableLiveData<String?>()
+    val actionFinishedEvent: LiveData<String?> get() = _actionFinishedEvent
+
     init {
         val db = AppDatabase.getDatabase(application)
         transactionRepository = TransactionRepository(db.transactionDao())
@@ -122,6 +128,37 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 _aiExplanation.value = error.message ?: "Failed to explain month."
             }
         }
+    }
+
+    /**
+     * Loads demo data (sample transactions and budgets) for the current logged-in user on Dispatchers.IO.
+     */
+    fun loadDemoData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val seeder = DemoDataSeeder(AppDatabase.getDatabase(getApplication()))
+            seeder.seed(currentUserId)
+            withContext(Dispatchers.Main) {
+                _actionFinishedEvent.value = "Demo data loaded"
+            }
+        }
+    }
+
+    /**
+     * Clears all transactions and budgets for the current logged-in user on Dispatchers.IO.
+     */
+    fun clearMyData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val db = AppDatabase.getDatabase(getApplication())
+            db.transactionDao().deleteUserTransactions(currentUserId)
+            db.budgetDao().deleteUserBudgets(currentUserId)
+            withContext(Dispatchers.Main) {
+                _actionFinishedEvent.value = "Data cleared"
+            }
+        }
+    }
+
+    fun onActionFinishedHandled() {
+        _actionFinishedEvent.value = null
     }
 
     private fun updateInsights(transactions: List<Transaction>, budgets: List<Budget>) {
