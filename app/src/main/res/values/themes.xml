@@ -2,8 +2,21 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.FinSight" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
     <style name="Theme.FinSight" parent="Base.Theme.FinSight" />
+
+    <!-- Arctic Green theme applied exclusively to Auth activities (Login & Register). -->
+    <style name="Theme.FinSight.Auth" parent="Theme.FinSight">
+        <item name="colorPrimary">@color/fs_emerald_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/fs_emerald</item>
+        <item name="colorPrimaryContainer">@color/fs_mint_light</item>
+        <item name="colorOnSurface">@color/fs_text_primary</item>
+        <item name="colorError">@color/fs_error</item>
+        <item name="android:colorBackground">@color/fs_arctic_bg</item>
+        <item name="colorSurface">@color/fs_arctic_bg</item>
+        <item name="android:statusBarColor">@color/fs_arctic_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
 </resources>
