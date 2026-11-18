@@ -9,14 +9,15 @@ import androidx.room.RoomDatabase
  * Main Room Database singleton class for FinSight application.
  */
 @Database(
-    entities = [Transaction::class, Budget::class],
-    version = 1,
+    entities = [Transaction::class, Budget::class, User::class],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun transactionDao(): TransactionDao
     abstract fun budgetDao(): BudgetDao
+    abstract fun userDao(): UserDao
 
     companion object {
         @Volatile
@@ -28,7 +29,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "finsight_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration(true)
+                    .build()
                 INSTANCE = instance
                 instance
             }

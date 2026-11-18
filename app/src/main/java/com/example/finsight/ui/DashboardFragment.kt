@@ -1,5 +1,6 @@
 package com.example.finsight.ui
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,6 +10,8 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.example.finsight.LoginActivity
+import com.example.finsight.auth.SessionManager
 import com.example.finsight.databinding.FragmentDashboardBinding
 import com.example.finsight.databinding.ItemTopBudgetBinding
 import com.github.mikephil.charting.charts.BarChart
@@ -24,6 +27,7 @@ import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.PercentFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -41,6 +45,7 @@ class DashboardFragment : Fragment() {
 
     private val viewModel: DashboardViewModel by viewModels()
     private val monthDateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+    private lateinit var sessionManager: SessionManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,9 +59,36 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.tvMonthTitle.text = monthDateFormat.format(Date())
+        sessionManager = SessionManager(requireContext())
+        setupHeader()
         setupExplainButton()
         observeViewModel()
+    }
+
+    private fun setupHeader() {
+        val name = sessionManager.currentUserName()
+        binding.tvGreeting.text = if (name.isNotEmpty()) "Hi, $name" else "Hi, Student"
+        binding.tvMonthTitle.text = monthDateFormat.format(Date())
+
+        binding.btnLogout.setOnClickListener {
+            showLogoutConfirmationDialog()
+        }
+    }
+
+    private fun showLogoutConfirmationDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Logout")
+            .setMessage("Are you sure you want to logout?")
+            .setPositiveButton("Logout") { _, _ ->
+                sessionManager.logout()
+                val intent = Intent(requireContext(), LoginActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(intent)
+                requireActivity().finish()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun setupExplainButton() {

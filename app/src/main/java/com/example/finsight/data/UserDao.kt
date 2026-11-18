@@ -1,0 +1,18 @@
+package com.example.finsight.data
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+
+/**
+ * Data Access Object (DAO) for managing user accounts.
+ */
+@Dao
+interface UserDao {
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insert(user: User): Long
+
+    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
+    suspend fun getByEmail(email: String): User?
+}
