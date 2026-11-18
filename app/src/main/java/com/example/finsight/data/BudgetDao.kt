@@ -18,6 +18,9 @@ interface BudgetDao {
     @Delete
     suspend fun delete(budget: Budget)
 
+    @Query("DELETE FROM budgets WHERE userId = :userId")
+    suspend fun deleteUserBudgets(userId: Long)
+
     @Query("SELECT * FROM budgets WHERE userId = :userId ORDER BY category ASC")
     fun getAllBudgets(userId: Long): LiveData<List<Budget>>
 
