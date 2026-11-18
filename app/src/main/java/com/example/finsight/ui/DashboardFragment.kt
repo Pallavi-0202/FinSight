@@ -32,7 +32,7 @@ import kotlin.math.abs
 
 /**
  * Fragment responsible for displaying summary metrics cards, category spending pie chart,
- * 6-month trend bar chart, top budget status, and spending insights.
+ * 6-month trend bar chart, top budget status, spending insights, and AI monthly explanation.
  */
 class DashboardFragment : Fragment() {
 
@@ -55,7 +55,14 @@ class DashboardFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.tvMonthTitle.text = monthDateFormat.format(Date())
+        setupExplainButton()
         observeViewModel()
+    }
+
+    private fun setupExplainButton() {
+        binding.btnExplainMonth.setOnClickListener {
+            viewModel.explainMyMonth()
+        }
     }
 
     private fun observeViewModel() {
@@ -97,6 +104,20 @@ class DashboardFragment : Fragment() {
                     container.addView(tv)
                 }
             }
+        }
+
+        viewModel.isExplainLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.pbExplainLoading.isVisible = isLoading
+            binding.btnExplainMonth.isEnabled = !isLoading
+            if (isLoading) {
+                binding.cardAiExplanation.isVisible = true
+                binding.tvAiExplanation.text = ""
+            }
+        }
+
+        viewModel.aiExplanation.observe(viewLifecycleOwner) { explanation ->
+            binding.cardAiExplanation.isVisible = true
+            binding.tvAiExplanation.text = explanation
         }
     }
 

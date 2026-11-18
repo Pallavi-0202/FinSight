@@ -2,13 +2,19 @@ package com.example.finsight.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import com.example.finsight.ai.FinanceContextBuilder
+import com.example.finsight.ai.GeminiClient
 import com.example.finsight.data.AppDatabase
 import com.example.finsight.data.Budget
 import com.example.finsight.data.BudgetRepository
 import com.example.finsight.data.Transaction
 import com.example.finsight.data.TransactionRepository
 import com.example.finsight.insights.InsightsEngine
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -53,11 +59,19 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     private val transactionRepository: TransactionRepository
     private val budgetRepository: BudgetRepository
     private val insightsEngine = InsightsEngine()
+    private val geminiClient = GeminiClient()
+    private val contextBuilder = FinanceContextBuilder()
 
     val dashboardSummary = MediatorLiveData<DashboardSummary>()
     val insightTexts = MediatorLiveData<List<String>>()
     val monthlyTrends = MediatorLiveData<List<MonthlyTrend>>()
     val topBudgets = MediatorLiveData<List<TopBudgetItem>>()
+
+    private val _aiExplanation = MutableLiveData<String>()
+    val aiExplanation: LiveData<String> get() = _aiExplanation
+
+    private val _isExplainLoading = MutableLiveData<Boolean>(false)
+    val isExplainLoading: LiveData<Boolean> get() = _isExplainLoading
 
     init {
         val db = AppDatabase.getDatabase(application)
@@ -78,6 +92,28 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             val transactions = transactionRepository.allTransactions.value.orEmpty()
             updateInsights(transactions, budgets)
             topBudgets.value = calculateTopBudgets(budgets, transactions)
+        }
+    }
+
+    fun explainMyMonth() {
+        val transactions = transactionRepository.allTransactions.value.orEmpty()
+        val budgets = budgetRepository.allBudgets.value.orEmpty()
+
+        val financeData = contextBuilder.buildContext(transactions, budgets)
+        val prompt = "Provide a short plain-language summary of my financial performance this month and 2 practical saving tips."
+        val fullInstruction = "$SYSTEM_INSTRUCTION\n\nFinancial Data:\n$financeData"
+
+        _isExplainLoading.value = true
+
+        viewModelScope.launch {
+            val result = geminiClient.generate(fullInstruction, emptyList(), prompt)
+            _isExplainLoading.value = false
+
+            result.onSuccess { text ->
+                _aiExplanation.value = text
+            }.onFailure { error ->
+                _aiExplanation.value = error.message ?: "Failed to explain month."
+            }
         }
     }
 
