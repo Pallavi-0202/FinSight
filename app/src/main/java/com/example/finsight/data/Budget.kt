@@ -5,15 +5,16 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
- * Room Entity representing a monthly category budget limit.
+ * Room Entity representing a monthly category budget limit for a specific user.
  */
 @Entity(
     tableName = "budgets",
-    indices = [Index(value = ["category"], unique = true)]
+    indices = [Index(value = ["userId", "category"], unique = true)]
 )
 data class Budget(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val userId: Long = 0,
     val category: String,
     val monthlyLimit: Double
 )

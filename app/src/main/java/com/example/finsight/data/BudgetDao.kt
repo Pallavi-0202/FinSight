@@ -8,7 +8,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 /**
- * Data Access Object (DAO) for managing budget database operations.
+ * Data Access Object (DAO) for managing user budget database operations.
  */
 @Dao
 interface BudgetDao {
@@ -18,9 +18,9 @@ interface BudgetDao {
     @Delete
     suspend fun delete(budget: Budget)
 
-    @Query("SELECT * FROM budgets ORDER BY category ASC")
-    fun getAllBudgets(): LiveData<List<Budget>>
+    @Query("SELECT * FROM budgets WHERE userId = :userId ORDER BY category ASC")
+    fun getAllBudgets(userId: Long): LiveData<List<Budget>>
 
-    @Query("SELECT * FROM budgets ORDER BY category ASC")
-    suspend fun getAllBudgetsOnce(): List<Budget>
+    @Query("SELECT * FROM budgets WHERE userId = :userId ORDER BY category ASC")
+    suspend fun getAllBudgetsOnce(userId: Long): List<Budget>
 }

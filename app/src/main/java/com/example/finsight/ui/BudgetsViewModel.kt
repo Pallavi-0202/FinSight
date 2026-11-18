@@ -2,9 +2,9 @@ package com.example.finsight.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.finsight.auth.SessionManager
 import com.example.finsight.data.AppDatabase
 import com.example.finsight.data.Budget
 import com.example.finsight.data.BudgetRepository
@@ -31,6 +31,8 @@ class BudgetsViewModel(application: Application) : AndroidViewModel(application)
 
     private val budgetRepository: BudgetRepository
     private val transactionRepository: TransactionRepository
+    private val sessionManager = SessionManager(application)
+    val currentUserId: Long = sessionManager.currentUserId()
 
     val budgetItems = MediatorLiveData<List<BudgetItemState>>()
 
@@ -39,12 +41,15 @@ class BudgetsViewModel(application: Application) : AndroidViewModel(application)
         budgetRepository = BudgetRepository(db.budgetDao())
         transactionRepository = TransactionRepository(db.transactionDao())
 
-        budgetItems.addSource(budgetRepository.allBudgets) { budgets ->
-            combineBudgetsAndTransactions(budgets, transactionRepository.allTransactions.value.orEmpty())
+        val userBudgets = budgetRepository.getAllBudgets(currentUserId)
+        val userTransactions = transactionRepository.getAllTransactions(currentUserId)
+
+        budgetItems.addSource(userBudgets) { budgets ->
+            combineBudgetsAndTransactions(budgets, userTransactions.value.orEmpty())
         }
 
-        budgetItems.addSource(transactionRepository.allTransactions) { transactions ->
-            combineBudgetsAndTransactions(budgetRepository.allBudgets.value.orEmpty(), transactions)
+        budgetItems.addSource(userTransactions) { transactions ->
+            combineBudgetsAndTransactions(userBudgets.value.orEmpty(), transactions)
         }
     }
 
@@ -91,7 +96,12 @@ class BudgetsViewModel(application: Application) : AndroidViewModel(application)
 
     fun addOrUpdateBudget(budget: Budget) {
         viewModelScope.launch {
-            budgetRepository.insertOrReplace(budget)
+            val userBudget = if (budget.userId == 0L) {
+                budget.copy(userId = currentUserId)
+            } else {
+                budget
+            }
+            budgetRepository.insertOrReplace(userBudget)
         }
     }
 

@@ -8,7 +8,7 @@ import androidx.room.Query
 import androidx.room.Update
 
 /**
- * Data Access Object (DAO) for managing transaction database operations.
+ * Data Access Object (DAO) for managing user transaction database operations.
  */
 @Dao
 interface TransactionDao {
@@ -21,12 +21,12 @@ interface TransactionDao {
     @Delete
     suspend fun delete(transaction: Transaction)
 
-    @Query("SELECT * FROM transactions ORDER BY date DESC")
-    fun getAllTransactions(): LiveData<List<Transaction>>
+    @Query("SELECT * FROM transactions WHERE userId = :userId ORDER BY date DESC")
+    fun getAllTransactions(userId: Long): LiveData<List<Transaction>>
 
-    @Query("SELECT * FROM transactions ORDER BY date DESC")
-    suspend fun getAllTransactionsOnce(): List<Transaction>
+    @Query("SELECT * FROM transactions WHERE userId = :userId ORDER BY date DESC")
+    suspend fun getAllTransactionsOnce(userId: Long): List<Transaction>
 
-    @Query("SELECT * FROM transactions WHERE date BETWEEN :startDate AND :endDate ORDER BY date DESC")
-    suspend fun getTransactionsBetweenDates(startDate: Long, endDate: Long): List<Transaction>
+    @Query("SELECT * FROM transactions WHERE userId = :userId AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    suspend fun getTransactionsBetweenDates(userId: Long, startDate: Long, endDate: Long): List<Transaction>
 }

@@ -3,14 +3,16 @@ package com.example.finsight.data
 import androidx.lifecycle.LiveData
 
 /**
- * Repository class providing a clean API for accessing budget data.
+ * Repository class providing a clean API for accessing user budget data.
  */
 class BudgetRepository(private val budgetDao: BudgetDao) {
 
-    val allBudgets: LiveData<List<Budget>> = budgetDao.getAllBudgets()
+    fun getAllBudgets(userId: Long): LiveData<List<Budget>> {
+        return budgetDao.getAllBudgets(userId)
+    }
 
-    suspend fun getAllBudgetsOnce(): List<Budget> {
-        return budgetDao.getAllBudgetsOnce()
+    suspend fun getAllBudgetsOnce(userId: Long): List<Budget> {
+        return budgetDao.getAllBudgetsOnce(userId)
     }
 
     suspend fun insertOrReplace(budget: Budget) {

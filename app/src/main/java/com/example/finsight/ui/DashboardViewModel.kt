@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.finsight.ai.FinanceContextBuilder
 import com.example.finsight.ai.GeminiClient
+import com.example.finsight.auth.SessionManager
 import com.example.finsight.data.AppDatabase
 import com.example.finsight.data.Budget
 import com.example.finsight.data.BudgetRepository
@@ -51,13 +52,16 @@ data class TopBudgetItem(
 )
 
 /**
- * ViewModel responsible for transforming transaction data into financial overview summary metrics,
+ * ViewModel responsible for transforming user transaction data into financial overview summary metrics,
  * 6-month trends, top budget alerts, and spending insights.
  */
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val transactionRepository: TransactionRepository
     private val budgetRepository: BudgetRepository
+    private val sessionManager = SessionManager(application)
+    val currentUserId: Long = sessionManager.currentUserId()
+
     private val insightsEngine = InsightsEngine()
     private val geminiClient = GeminiClient()
     private val contextBuilder = FinanceContextBuilder()
@@ -78,18 +82,21 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         transactionRepository = TransactionRepository(db.transactionDao())
         budgetRepository = BudgetRepository(db.budgetDao())
 
-        dashboardSummary.addSource(transactionRepository.allTransactions) { transactions ->
+        val userTransactions = transactionRepository.getAllTransactions(currentUserId)
+        val userBudgets = budgetRepository.getAllBudgets(currentUserId)
+
+        dashboardSummary.addSource(userTransactions) { transactions ->
             dashboardSummary.value = calculateSummary(transactions)
             monthlyTrends.value = calculateMonthlyTrends(transactions)
-            updateInsights(transactions, budgetRepository.allBudgets.value.orEmpty())
+            updateInsights(transactions, userBudgets.value.orEmpty())
             topBudgets.value = calculateTopBudgets(
-                budgetRepository.allBudgets.value.orEmpty(),
+                userBudgets.value.orEmpty(),
                 transactions
             )
         }
 
-        insightTexts.addSource(budgetRepository.allBudgets) { budgets ->
-            val transactions = transactionRepository.allTransactions.value.orEmpty()
+        insightTexts.addSource(userBudgets) { budgets ->
+            val transactions = userTransactions.value.orEmpty()
             updateInsights(transactions, budgets)
             topBudgets.value = calculateTopBudgets(budgets, transactions)
         }
@@ -99,8 +106,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         _isExplainLoading.value = true
 
         viewModelScope.launch {
-            val transactions = transactionRepository.getAllTransactionsOnce()
-            val budgets = budgetRepository.getAllBudgetsOnce()
+            val transactions = transactionRepository.getAllTransactionsOnce(currentUserId)
+            val budgets = budgetRepository.getAllBudgetsOnce(currentUserId)
 
             val financeData = contextBuilder.buildContext(transactions, budgets)
             val prompt = "Provide a short plain-language summary of my financial performance this month and 2 practical saving tips."

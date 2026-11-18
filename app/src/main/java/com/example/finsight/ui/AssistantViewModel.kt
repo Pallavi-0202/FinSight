@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.finsight.ai.ChatMessage
 import com.example.finsight.ai.FinanceContextBuilder
 import com.example.finsight.ai.GeminiClient
+import com.example.finsight.auth.SessionManager
 import com.example.finsight.data.AppDatabase
 import com.example.finsight.data.BudgetRepository
 import com.example.finsight.data.TransactionRepository
@@ -22,6 +23,9 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val transactionRepository: TransactionRepository
     private val budgetRepository: BudgetRepository
+    private val sessionManager = SessionManager(application)
+    val currentUserId: Long = sessionManager.currentUserId()
+
     private val geminiClient = GeminiClient()
     private val contextBuilder = FinanceContextBuilder()
 
@@ -53,8 +57,8 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
         _isLoading.value = true
 
         viewModelScope.launch {
-            val transactions = transactionRepository.getAllTransactionsOnce()
-            val budgets = budgetRepository.getAllBudgetsOnce()
+            val transactions = transactionRepository.getAllTransactionsOnce(currentUserId)
+            val budgets = budgetRepository.getAllBudgetsOnce(currentUserId)
 
             val financeData = contextBuilder.buildContext(transactions, budgets)
             val fullInstruction = "$SYSTEM_INSTRUCTION\n\nFinancial Data:\n$financeData"
