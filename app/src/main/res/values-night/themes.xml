@@ -1,7 +1,33 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.FinSight" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <!-- Base application theme enforcing light arctic green palette in night mode. -->
+    <style name="Base.Theme.FinSight" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/fs_emerald_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/fs_mint_light</item>
+        <item name="colorOnPrimaryContainer">@color/fs_emerald_dark</item>
+
+        <item name="colorSecondary">@color/fs_emerald</item>
+        <item name="colorSecondaryContainer">@color/fs_mint</item>
+        <item name="colorOnSecondaryContainer">@color/fs_emerald_dark</item>
+
+        <item name="colorTertiary">@color/fs_emerald</item>
+
+        <item name="android:colorBackground">@color/fs_arctic_bg</item>
+        <item name="colorSurface">@color/fs_arctic_bg</item>
+        <item name="colorSurfaceVariant">@color/fs_mint_light</item>
+        <item name="colorOnSurface">@color/fs_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/fs_text_secondary</item>
+        <item name="colorOutline">@color/fs_mint</item>
+        <item name="colorError">@color/fs_error</item>
+
+        <!-- Material 3 Surface Containers -->
+        <item name="colorSurfaceContainer">@color/white</item>
+        <item name="colorSurfaceContainerLow">@color/white</item>
+        <item name="colorSurfaceContainerHigh">@color/fs_mint_light</item>
+        <item name="colorSurfaceContainerHighest">@color/fs_mint_light</item>
+
+        <!-- Status bar configuration -->
+        <item name="android:statusBarColor">@color/fs_arctic_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>
