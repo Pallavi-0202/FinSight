@@ -1,5 +1,6 @@
 package com.example.finsight.ai
 
+import android.util.Log
 import com.example.finsight.data.Budget
 import com.example.finsight.data.Transaction
 import com.example.finsight.insights.InsightsEngine
@@ -104,7 +105,9 @@ class FinanceContextBuilder {
             }
         }
 
-        return sb.toString()
+        val contextText = sb.toString()
+        Log.d("FinSightContext", contextText)
+        return contextText
     }
 
     private fun formatCurrency(amount: Double): String {

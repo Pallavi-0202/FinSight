@@ -20,4 +20,7 @@ interface BudgetDao {
 
     @Query("SELECT * FROM budgets ORDER BY category ASC")
     fun getAllBudgets(): LiveData<List<Budget>>
+
+    @Query("SELECT * FROM budgets ORDER BY category ASC")
+    suspend fun getAllBudgetsOnce(): List<Budget>
 }

@@ -53,8 +53,8 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
         _isLoading.value = true
 
         viewModelScope.launch {
-            val transactions = transactionRepository.allTransactions.value.orEmpty()
-            val budgets = budgetRepository.allBudgets.value.orEmpty()
+            val transactions = transactionRepository.getAllTransactionsOnce()
+            val budgets = budgetRepository.getAllBudgetsOnce()
 
             val financeData = contextBuilder.buildContext(transactions, budgets)
             val fullInstruction = "$SYSTEM_INSTRUCTION\n\nFinancial Data:\n$financeData"

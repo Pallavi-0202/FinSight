@@ -96,16 +96,16 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun explainMyMonth() {
-        val transactions = transactionRepository.allTransactions.value.orEmpty()
-        val budgets = budgetRepository.allBudgets.value.orEmpty()
-
-        val financeData = contextBuilder.buildContext(transactions, budgets)
-        val prompt = "Provide a short plain-language summary of my financial performance this month and 2 practical saving tips."
-        val fullInstruction = "$SYSTEM_INSTRUCTION\n\nFinancial Data:\n$financeData"
-
         _isExplainLoading.value = true
 
         viewModelScope.launch {
+            val transactions = transactionRepository.getAllTransactionsOnce()
+            val budgets = budgetRepository.getAllBudgetsOnce()
+
+            val financeData = contextBuilder.buildContext(transactions, budgets)
+            val prompt = "Provide a short plain-language summary of my financial performance this month and 2 practical saving tips."
+            val fullInstruction = "$SYSTEM_INSTRUCTION\n\nFinancial Data:\n$financeData"
+
             val result = geminiClient.generate(fullInstruction, emptyList(), prompt)
             _isExplainLoading.value = false
 
